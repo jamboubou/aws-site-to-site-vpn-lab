@@ -1,0 +1,306 @@
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'VPC: Simulation of OnPrem DC'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: Environment 
+      Parameters:
+      - pEnv
+    - Label:
+        default: Organization Identifier
+      Parameters:
+      - pOrg
+    - Label:
+        default: 'VPC Parameters'
+      Parameters:
+      - pClassB
+    - Label:
+        default: EC2  
+      Parameters:
+      - pAmiId
+    ParameterLabels:
+      pOrg:
+        default: Organization Identifier
+      pEnv:
+        default: Environment 
+      pClassB:
+        default: Application Identifier
+      pAmiId:
+        default: EC2 AMI ID
+Parameters:
+  pClassB:
+    Description: 'Class B of VPC (10.XXX.0.0/16)'
+    Type: Number
+    Default: 0
+    ConstraintDescription: 'Must be in the range [0-255]'
+    MinValue: 0
+    MaxValue: 255
+  pOrg:
+    Type: String
+    Description: Used to qualify resource names
+    Default: acme
+  pEnv:
+    Type: String
+    Description: Used to qualify resource names. 10 characters max.
+    AllowedPattern: '^[a-zA-Z0-9-_]{1,10}$'
+  pAmiId:
+    Description: EC2 AMI ID
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-ebs'
+Resources:
+  rVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Sub '10.${pClassB}.0.0/16'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-VPC'
+  rInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-IGW'
+  rVPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref rVPC
+      InternetGatewayId: !Ref rInternetGateway
+  rSubnetPublic:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Sub '10.${pClassB}.0.0/20'
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref rVPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-Public-Subnet'
+      - Key: Reach
+        Value: public
+  rSubnetPrivate:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Sub '10.${pClassB}.16.0/20'
+      VpcId: !Ref rVPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-Private-Subnet'
+      - Key: Reach
+        Value: private
+  rRouteTablePublic: 
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref rVPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-Public-RT'
+  rRouteTablePrivate: 
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref rVPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-Private-RT'
+  rRouteTableAssociationPublic:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rSubnetPublic
+      RouteTableId: !Ref rRouteTablePublic
+  rRouteTableAssociationAPrivate:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref rSubnetPrivate
+      RouteTableId: !Ref rRouteTablePrivate
+  rRouteTablePublicInternetRoute: 
+    Type: 'AWS::EC2::Route'
+    DependsOn: rVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref rRouteTablePublic
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref rInternetGateway
+  rNetworkAclPublic:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId: !Ref rVPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-Public-NACL'
+  rNetworkAclPrivate:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId: !Ref rVPC
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-Private-NACL'
+  rSubnetNetworkAclAssociationPublic:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      SubnetId: !Ref rSubnetPublic
+      NetworkAclId: !Ref rNetworkAclPublic
+  rSubnetNetworkAclAssociationAPrivate:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      SubnetId: !Ref rSubnetPrivate
+      NetworkAclId: !Ref rNetworkAclPrivate
+  rNetworkAclEntryInPublicAllowAll:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref rNetworkAclPublic
+      RuleNumber: 99
+      Protocol: -1
+      RuleAction: allow
+      Egress: false
+      CidrBlock: '0.0.0.0/0'
+  rNetworkAclEntryOutPublicAllowAll:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref rNetworkAclPublic
+      RuleNumber: 99
+      Protocol: -1
+      RuleAction: allow
+      Egress: true
+      CidrBlock: '0.0.0.0/0'
+  rNetworkAclEntryInPrivateAllowVPC:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref rNetworkAclPrivate
+      RuleNumber: 99
+      Protocol: -1
+      RuleAction: allow
+      Egress: false
+      CidrBlock: '0.0.0.0/0'
+  rNetworkAclEntryOutPrivateAllowVPC:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref rNetworkAclPrivate
+      RuleNumber: 99
+      Protocol: -1
+      RuleAction: allow
+      Egress: true
+      CidrBlock: '0.0.0.0/0'
+  rEIP:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: vpc
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-NAT-GW-EIP'
+  rNatGateway:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt 'rEIP.AllocationId'
+      SubnetId: !Ref rSubnetPublic
+      Tags:
+      - Key: Name
+        Value: !Sub '${pOrg}-${pEnv}-NAT-GW'
+  rRouteTablePrivateInternetRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref rRouteTablePrivate
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId: !Ref rNatGateway
+  rInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub 'test-ec2-${pEnv}'
+      VpcId: !Ref rVPC
+      GroupDescription: Allow ICMP traffic 
+      SecurityGroupIngress:
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: '0.0.0.0/0'
+  rRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${pOrg}-test-${pEnv}-svc-ssm'
+      Path: !Sub '/${pOrg}/test/'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  rInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub 'test-${pEnv}'
+      Path: !Sub '/${pOrg}/test/'
+      Roles:
+        - !Ref rRole
+  rTestInstance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      InstanceType: 't3a.micro'
+      ImageId: !Ref pAmiId
+      IamInstanceProfile: !Ref rInstanceProfile
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          DeleteOnTermination: true
+          SubnetId: !Ref rSubnetPrivate
+          GroupSet:
+            - !Ref rInstanceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub 'test-${pEnv}'
+Outputs:
+  StackName:
+    Description: 'Stack name.'
+    Value: !Sub '${AWS::StackName}'
+  AZ:
+    Description: 'AZ'
+    Value: !Select [0, !GetAZs '']
+    Export:
+      Name: !Sub '${AWS::StackName}-AZ'
+  CidrBlock:
+    Description: 'The set of IP addresses for the VPC.'
+    Value: !GetAtt 'rVPC.CidrBlock'
+    Export:
+      Name: !Sub '${AWS::StackName}-CidrBlock'
+  VPC:
+    Description: 'VPC.'
+    Value: !Ref rVPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC'
+  Instance:
+    Description: 'Test Instance.'
+    Value: !Ref rTestInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-Instance'
+  SubnetPublic:
+    Description: 'Public subnet.'
+    Value: !Ref rSubnetPublic
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPublic'
+  RouteTablePublic:
+    Description: 'Route table public.'
+    Value: !Ref rRouteTablePublic
+    Export:
+      Name: !Sub '${AWS::StackName}-RouteTablePublic'
+  SubnetAPrivate:
+    Description: 'Private subnet.'
+    Value: !Ref rSubnetPrivate
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetAPrivate'
+  RouteTableAPrivate:
+    Description: 'Route table private.'
+    Value: !Ref rRouteTablePrivate
+    Export:
+      Name: !Sub '${AWS::StackName}-RouteTableAPrivate'
+  IPAddress:
+    Description: 'The public IP address of the NAT gateway.'
+    Value: !Ref rEIP
+    Export:
+      Name: !Sub '${AWS::StackName}-IPAddress'
