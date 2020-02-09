@@ -7,7 +7,7 @@ For the on prem VPN Gateway we will use [strongSwan VPN solution](https://www.st
 
 See the diagram below for a depiction of the complete architecture.
 
-![Architecture](Images/vpn-lab-architecture.png)
+![Architecture](images/vpn-lab-architecture.png)
 
 ## Modules
 
