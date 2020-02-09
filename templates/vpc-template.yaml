@@ -1,7 +1,7 @@
 # Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'VPC: Simulation of OnPrem DC'
+Description: 'VPC with Pruvate and Public Subnets'
 Metadata:
   'AWS::CloudFormation::Interface':
     ParameterGroups:
@@ -27,7 +27,7 @@ Metadata:
       pEnv:
         default: Environment 
       pClassB:
-        default: Application Identifier
+        default: ClassB
       pAmiId:
         default: EC2 AMI ID
 Parameters:
