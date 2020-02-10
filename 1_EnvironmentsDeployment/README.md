@@ -117,6 +117,9 @@ ping <test-aws instance private IP>
 ``` 
 9. The ping command doesn't succeed which what we would expected so far since VPCs are isolated and doesn't communicate by default. 
 
+
+</p></details>
+
 ## Next
 
 You may now proceed to [Module 2 - VPN Configuration](../2_VPNConfiguration).

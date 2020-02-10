@@ -118,6 +118,8 @@ In the meanwhile we will finalize the route tables configuration.
 
 8. Choose **Save Routes** and then **close**.
 
+</p></details>
+
 ## 3. Tests
 
 Ok let's now redo our previous tests and try to reach our AWS EC2 instance from our emulated On Prem EC2 instance. 
@@ -150,6 +152,8 @@ You can check that the Site-To-Site VPN Connection, we configured show status "U
 ping <test-aws instance private IP>
 ``` 
 9. The ping command now should succeed. 
+
+</p></details>
 
 ## TODO
 
