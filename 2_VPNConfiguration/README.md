@@ -46,21 +46,19 @@ Use the AWS console.
 
 5. Leave other fields with default settings and choose **Create Transit Gateway**.
 
-6. Input the IP Address noted from the last step of section 1 in Module 1 as the 'IP Address'.
+6. Choose **Transit Gateway Attachments** on the left pan under 'Transit Gateways' section.
 
-7. Choose **Transit Gateway Attachments** on the left pan under 'Transit Gateways' section.
+7. Choose **Create Transit Gateway Attachment**.
 
-8. Choose **Create Transit Gateway Attachment**.
+8. Select the Transit Gateway we just created from the drop-down menue of **Transit Gateway ID**.
 
-9. Select the Transit Gateway we just created from the drop-down menue of **Transit Gateway ID**.
+9. Select **VPC**.
 
-10. Select **VPC**.
+10. Input `VPC Attachment` as the 'Attachment name tag'.
 
-11. Input `VPC Attachment` as the 'Attachment name tag'.
+11. Select the xxxx-aws-vpc from the drop-down menue of **VPC ID**.
 
-12. Select the xxxx-aws-vpc from the drop-down menue of **VPC ID**.
-
-13. Leave other fields with default settings and choose **Create attachment**.
+12. Leave other fields with default settings and choose **Create attachment**.
 
 </p></details>
 
