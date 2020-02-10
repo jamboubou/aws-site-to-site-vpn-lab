@@ -93,7 +93,7 @@ Use the AWS console.
 
 11. Select **Generic** as 'Vendor' and choose **Download**. Keep the VPN Connection configuration file, we will use it in Module 3.
 
-12. The 'state' will remain pending and if you choose **Tunnel Details** from the bottom you can see both 'Tunnel 1' and 'Tunnel 2' are down which is expected as we didn't yeh create the Customer VPN Gateway.
+12. The 'state' will remain pending and if you choose **Tunnel Details** from the bottom you can see both 'Tunnel 1' and 'Tunnel 2' are down which is expected as we didn't yet create the Customer VPN Gateway.
 
 </p></details>
 
