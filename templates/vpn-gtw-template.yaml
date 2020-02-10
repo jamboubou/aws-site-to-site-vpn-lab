@@ -13,7 +13,7 @@ Metadata:
       - pOrg
       - pApp
     - Label:
-        default: System Environment
+        default: Environment
       Parameters:
       - pEnv
     - Label:
@@ -53,7 +53,7 @@ Metadata:
       pApp:
         default: Application Identifier
       pEnv:
-        default: Environment Purpose
+        default: Environment
 
       pTunnel1Psk:
         default: VPN Tunnel 1 Pre-Shared Key
