@@ -86,7 +86,7 @@ Use the AWS console to launch the same CloudFormation.
     
 </p></details>
 
-## 2. Tests
+## 3. Tests
 
 Let's now do some tests and try to reach our AWS EC2 instance from our emulated On Prem EC2 instance. 
 
