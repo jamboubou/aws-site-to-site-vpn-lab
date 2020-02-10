@@ -61,7 +61,6 @@ Use the AWS console to launch the CloudFormation previsouly downloaded.
 |`VPC ID`|Required|The VPC in which the VPN gateway is to be deployed.|`Select the xxxx-onprem-VPC`|
 |`VPC CIDR Block`|Required|The CIDR block of the local VPC. Used to advertise via BGP routing information to the remote site.|`Enter the onprem VPC CIDR`|
 |`Subnet ID for VPN Gateway`|Required|The subnet in which the VPN gateway is to be deployed.|`Choose the xxxx-onprem-Private-Subnet`|
-|`pUseElasticIp`|Optional|Use elastic IP address?|`false`|
 |`pLocalBgpAsn`|Optional|The BGP Autonomous System Number (ASN) used to represent the local end of the site-to-site VPN connection.|`65000`|
 
 13. Leave other fields to default and choose **Next**.
