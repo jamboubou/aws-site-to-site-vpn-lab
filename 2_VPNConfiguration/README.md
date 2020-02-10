@@ -1,4 +1,4 @@
-# Module 1: VPN Configuration
+# Module 2: VPN Configuration
 
 In this module, you will create and configure a Customer Gateway, an AWS Transit Gateway,  and a VPN Site-To-Site connection.
 
