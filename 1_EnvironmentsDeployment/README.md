@@ -119,4 +119,4 @@ ping <test-aws instance private IP>
 
 ## Next
 
-You may now proceed to [Module 2 - VPN Configuration](./2_VPNConfiguration).
+You may now proceed to [Module 2 - VPN Configuration](../2_VPNConfiguration).

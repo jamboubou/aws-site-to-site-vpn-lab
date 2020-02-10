@@ -102,4 +102,4 @@ Use the AWS console.
 
 ## Next
 
-You may now proceed to [Module 3 - VPN Gateway Deployment](./3_VPNGatewayDeployment).
+You may now proceed to [Module 3 - VPN Gateway Deployment](../3_VPNGatewayDeployment).
